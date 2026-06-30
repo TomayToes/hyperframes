@@ -75,6 +75,15 @@ export async function captureWebsite(
   const { ensureBrowser } = await import("../browser/manager.js");
   const browser = await ensureBrowser();
   const puppeteer = await import("puppeteer-core");
+  // Route Chrome through the environment's outbound HTTPS proxy when present
+  // (sandboxed/agent environments tunnel all egress through a local proxy that
+  // also intercepts TLS, so the proxy CA must be trusted or cert errors ignored).
+  const envProxy =
+    process.env.HYPERFRAMES_CHROME_PROXY ||
+    process.env.HTTPS_PROXY ||
+    process.env.https_proxy ||
+    "";
+  const proxyArgs = envProxy ? [`--proxy-server=${envProxy}`, "--ignore-certificate-errors"] : [];
   const chromeBrowser = await puppeteer.default.launch({
     headless: true,
     executablePath: browser.executablePath,
@@ -89,6 +98,7 @@ export async function captureWebsite(
       "--disable-background-timer-throttling",
       "--disable-renderer-backgrounding",
       `--window-size=${viewportWidth},${viewportHeight}`,
+      ...proxyArgs,
     ],
   });
 
