@@ -1,0 +1,51 @@
+VIDEO BRIEF: "Tu balanza te miente"
+
+Concepto — En 40 segundos desmentimos la pesa de baño y mostramos los 5 datos reales que el escáner VisBody revela en 3 minutos. Categoría: salud / transformación-revelación. Por qué se comparte: la gente se ve reflejada ("esto soy yo, me veo bien pero…") y el gancho da munición para debatir.
+
+HOOK (0–3s)
+Visual (primer frame): persona parada en una balanza de baño mirando el número con cara de "otra vez lo mismo". Texto centrado enorme: TU BALANZA TE MIENTE. El número visible en la pesa.
+VO: "Tu balanza te está mintiendo."
+Funciona con sonido apagado: el texto + la pesa lo dicen todo en 0.5s.
+
+FORESHADOW (3–8s) — el contrato con el viewer
+VO: "Te da un número. Pero no te dice qué es grasa, qué es músculo, ni qué pasa por dentro."
+VO: "En 3 minutos te muestro los 5 datos que sí importan."
+En pantalla, flashes rápidos: ¿Grasa? ¿Músculo? ¿Agua?
+
+PACING BREAK (8–13s) — transición en contexto
+VO: "Te subís a la plataforma y una cámara 3D te lee el cuerpo entero en 360°. Sin radiación, sin agujas."
+Visual: la persona se para en el VisBody, el escáner gira, el avatar 3D se va construyendo. Placa: 3 MIN · 0 RADIACIÓN.
+
+MECHANISM — contador 1/5 → 5/5
+Un contador visible arriba ("1 de 5"… "5 de 5") mientras cada zona del avatar 3D se ilumina. Fuerza a quedarse: "necesito ver los 5."
+
+GUIÓN COMPLETO (los 5 datos, ritmo rápido)
+Cada línea = una zona que se enciende en el modelo 3D + el número en pantalla:
+1 — "Tu grasa, hasta la visceral, en 3D." (avatar: abdomen encendido, grasa visceral resaltada)
+2 — "Tu músculo, zona por zona." (brazos, tronco, piernas)
+3 — "Tus proporciones reales." (cintura-cadera)
+4 — "Tu metabolismo, medible en el tiempo." (gráfico comparativo)
+5 — "Tu postura… antes de que duela." (línea de hombros, asimetría marcada)
+
+PAYOFF + TWIST
+Esperado: "mi pesa miente, ya entendí."
+Twist (escala el gancho): la persona ve su informe 3D en el celular. VO: "Pesabas 'normal'… pero mirá lo que tu balanza nunca vio." El avatar resalta el dato incómodo (grasa visceral alta o postura desviada). El punto que golpea: aunque estés en "peso sano", el escaneo encuentra lo que de verdad importa.
+Último frame emocional: la persona viendo su cuerpo en datos en el teléfono, sorprendida pero empoderada.
+
+CTA (2–3s, placa final — la desviación deliberada)
+VisBody · Hospital CEMESA · San Pedro Sula
+Agendá tu escaneo — link en bio · WhatsApp 9458-2959
+Verde CEMESA, rápida, skimmeable. No la alargués o mata el loop.
+
+PROMO (contexto del usuario, a integrar en la placa de cierre):
+Primer estudio L500 · Segundo estudio a mitad de precio · Los dos por L750 · Compartibles con alguien más.
+
+NOTAS DE EDICIÓN
+Corte: seco justo después de "…nunca vio" si corrés la versión awareness; con CTA, deja la placa 2.5s máximo.
+Los 5 datos van en cortes de ~1.5s cada uno — ritmo staccato, sin respirar entre ellos.
+El contador 1/5→5/5 es el ancla de retención; que nunca desaparezca de pantalla en esa sección.
+Duración estimada: ~40s (VO ≈ 99 palabras).
+
+GANCHOS ALTERNOS (A/B, mismo cuerpo de video):
+"Bajaste 2 libras. No es lo que creés."
+"Esto es lo que tu pesa te esconde."
