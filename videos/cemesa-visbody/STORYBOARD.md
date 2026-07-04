@@ -50,7 +50,7 @@ Scene 3 (2.2–3.5s): la palabra payoff **MIENTE** aterriza última en gold, una
 
 - scene: El número de la pesa persiste un instante y se "vacía"; a su alrededor caen preguntas en staccato — ¿GRASA? ¿MÚSCULO? ¿AGUA? — sin respuesta.
 - voiceover: "Te da un número. Pero no te dice qué es grasa, qué es músculo, ni qué pasa por dentro. En 3 minutos te muestro los 5 datos que sí importan."
-- duration: 7s
+- duration: 5.8s
 - poster: 3s
 - transition_in: crossfade
 - status: animated
@@ -77,7 +77,7 @@ Scene 3 (3.2–5.5s): las preguntas se limpian; **LOS 5 DATOS QUE SÍ IMPORTAN**
 
 - scene: Una silueta se para en la plataforma VisBody; un barrido de escaneo 360° construye un avatar 3D de puntos/wireframe verde. Placa: 3 MIN · 0 RADIACIÓN · SIN AGUJAS.
 - voiceover: "Te subís a la plataforma y una cámara 3D te lee el cuerpo entero en 360°. Sin radiación, sin agujas."
-- duration: 6s
+- duration: 8.7s
 - poster: 3s
 - transition_in: zoom-through
 - status: animated
@@ -105,7 +105,7 @@ Scene 3 (3.0–4.5s): el avatar resuelve y sostiene al centro; tres chips mono *
 
 - scene: El avatar 3D queda fijo al centro; un contador "1/5 … 5/5" vive arriba y NUNCA desaparece. Cada dato enciende una zona del cuerpo (glow emerald) y muestra su cifra, en cortes secos de ~1.5s.
 - voiceover: "Uno: tu grasa, hasta la visceral, en 3D. Dos: tu músculo, zona por zona. Tres: tus proporciones reales. Cuatro: tu metabolismo, medible en el tiempo. Cinco: tu postura, antes de que duela."
-- duration: 13.5s
+- duration: 14.8s
 - poster: 5s
 - transition_in: crossfade
 - status: animated
@@ -141,7 +141,7 @@ Scene 6 (6.8–9.0s): contador **5/5**; la línea de hombros + marca de asimetr�
 
 - scene: El informe 3D aparece en un celular en mano; una zona incómoda se resalta en oro (grasa visceral alta / postura desviada). Golpe: aun en "peso sano", el escaneo encuentra lo que importa.
 - voiceover: "Pesabas 'normal'… pero mirá lo que tu balanza nunca vio."
-- duration: 7s
+- duration: 4.8s
 - poster: 3.5s
 - transition_in: zoom-through
 - status: animated
@@ -169,7 +169,7 @@ Scene 3 (3.2–5.5s): un callout gold rodea **GRASA VISCERAL** (o **POSTURA**) e
 
 - scene: Placa final CEMESA: wordmark "CEMESA" en serif Cormorant con hairline + DIRECTORIO/VISBODY, datos de contacto, y una franja de promo en oro. Rápida y skimmeable.
 - voiceover: "VisBody, en Hospital CEMESA, San Pedro Sula. Agendá tu escaneo por WhatsApp."
-- duration: 4.5s
+- duration: 6.2s
 - poster: 2.5s
 - transition_in: crossfade
 - status: animated
