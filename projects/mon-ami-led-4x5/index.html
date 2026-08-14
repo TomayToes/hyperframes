@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="es-HN" data-composition-width="1080" data-composition-height="1350">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1350" />
+    <title>Mon Ami — LED 4:5</title>
+    <!-- GSAP vendorizado (3.14.2): el render no hace ninguna petición de red. -->
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      /* Fuentes de marca servidas desde el proyecto (subset latin, variables):
+         render offline y determinista, sin fetch en tiempo de render. */
+      @font-face {
+        font-family: "Cormorant Garamond";
+        font-style: normal;
+        font-weight: 300 700;
+        font-display: block;
+        src: url("assets/fonts/cormorant-garamond-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Jost";
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: block;
+        src: url("assets/fonts/jost-latin.woff2") format("woff2");
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1350px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      /* ---- Tokens de marca Mon Ami (assets/tokens.json) ---- */
+      :root {
+        --ma-negro: #000000;
+        --ma-dorado: #e9d9a0;
+        --ma-dorado-luz: #f4e9c2;
+        --ma-dorado-bronce: #b8862e;
+        --ma-crema: #f4efe4;
+        --ma-taupe: #a49d8f;
+        --ma-borgona: #6e1423;
+        --safe: 84px;
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1350px;
+        overflow: hidden;
+        background: var(--ma-negro);
+      }
+
+      /* ============================================================
+         CAPA COMPARTIDA (no es clip — vive toda la composición).
+         Patrón full-screen-motion: un solo lienzo continuo de foto
+         + scrim + viñeta + grano, manejado desde el timeline.
+         ============================================================ */
+      #stage {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .shot {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        will-change: opacity, transform;
+      }
+      .shot img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 1080px;
+        height: 1350px;
+        object-fit: cover;
+        transform: translate(-50%, -50%);
+        transform-origin: 50% 42%;
+        will-change: transform;
+      }
+
+      /* Bloom ámbar: simula el spot cálido del local. Late en cada corte. */
+      #bloom {
+        position: absolute;
+        left: 50%;
+        top: 34%;
+        width: 1500px;
+        height: 1500px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(233, 217, 160, 0.22) 0%,
+          rgba(184, 134, 46, 0.1) 34%,
+          rgba(0, 0, 0, 0) 66%
+        );
+        mix-blend-mode: screen;
+        opacity: 0.5;
+      }
+
+      /* Viñeta de ambiente (visual-specs §3). */
+      #vineta {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 50% 38%,
+          rgba(0, 0, 0, 0) 30%,
+          rgba(0, 0, 0, 0.52) 100%
+        );
+      }
+
+      /* Scrim inferior — obligatorio bajo todo texto sobre foto (§4.2). */
+      #scrim {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(0, 0, 0, 0.95) 0%,
+          rgba(0, 0, 0, 0.9) 22%,
+          rgba(0, 0, 0, 0.66) 38%,
+          rgba(0, 0, 0, 0.22) 54%,
+          rgba(0, 0, 0, 0) 72%
+        );
+      }
+      /* Scrim superior, corto: protege el riel de marca. */
+      #scrim-top {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.86) 0%,
+          rgba(0, 0, 0, 0.62) 8%,
+          rgba(0, 0, 0, 0.2) 14%,
+          rgba(0, 0, 0, 0) 22%
+        );
+      }
+
+      #grano {
+        position: absolute;
+        inset: -64px;
+        background-image: url("assets/img/grain.png");
+        background-size: 256px 256px;
+        opacity: 0.13;
+        mix-blend-mode: overlay;
+      }
+
+      /* ---- Herrajes permanentes: riel superior + marcas de registro ---- */
+      #riel {
+        position: absolute;
+        top: 96px;
+        left: var(--safe);
+        right: var(--safe);
+        display: flex;
+        align-items: center;
+        gap: 22px;
+      }
+      #riel .filete {
+        height: 2px;
+        width: 76px;
+        background: linear-gradient(90deg, rgba(184, 134, 46, 0) 0%, var(--ma-dorado) 100%);
+        transform-origin: right center;
+      }
+      #riel .rotulo {
+        font-family: "Jost", sans-serif;
+        font-weight: 400;
+        font-size: 30px;
+        letter-spacing: 0.34em;
+        text-transform: uppercase;
+        color: var(--ma-taupe);
+        white-space: nowrap;
+      }
+      #riel .filete-largo {
+        height: 1px;
+        flex: 1;
+        background: linear-gradient(90deg, rgba(184, 134, 46, 0.55) 0%, rgba(184, 134, 46, 0) 100%);
+        transform-origin: left center;
+      }
+
+      .marca-registro {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        border-color: var(--ma-dorado-bronce);
+        border-style: solid;
+        opacity: 0.65;
+      }
+      .mr-tl {
+        top: 44px;
+        left: 44px;
+        border-width: 2px 0 0 2px;
+      }
+      .mr-tr {
+        top: 44px;
+        right: 44px;
+        border-width: 2px 2px 0 0;
+      }
+      .mr-bl {
+        bottom: 44px;
+        left: 44px;
+        border-width: 0 0 2px 2px;
+      }
+      .mr-br {
+        bottom: 44px;
+        right: 44px;
+        border-width: 0 2px 2px 0;
+      }
+
+      /* ============================================================
+         CAPAS DE TEXTO — clips transparentes, uno por beat.
+         ============================================================ */
+      .beat {
+        position: absolute;
+        left: var(--safe);
+        right: var(--safe);
+        bottom: 168px;
+        z-index: 20;
+      }
+      /* La opacidad se anima en este hijo, nunca en el .clip:
+         el framework ya controla la visibilidad del clip. */
+      .beat-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 26px;
+      }
+
+      .eyebrow {
+        font-family: "Jost", sans-serif;
+        font-weight: 400;
+        font-size: 34px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--ma-taupe);
+      }
+
+      .filete-beat {
+        height: 2px;
+        width: 132px;
+        background: linear-gradient(
+          100deg,
+          var(--ma-dorado-bronce) 0%,
+          var(--ma-dorado-luz) 48%,
+          var(--ma-dorado-bronce) 100%
+        );
+        transform-origin: left center;
+      }
+
+      /* Reveal por máscara: cada línea vive en su propia ventana. */
+      .linea {
+        display: block;
+        overflow: hidden;
+        transform-origin: left center;
+        padding-bottom: 0.12em;
+      }
+      .linea > span {
+        display: block;
+        font-family: "Cormorant Garamond", serif;
+        line-height: 1.06;
+      }
+
+      .titular > span {
+        font-weight: 300;
+        font-size: 112px;
+        color: var(--ma-crema);
+      }
+      .plato > span {
+        font-weight: 400;
+        font-size: 92px;
+        color: var(--ma-dorado);
+      }
+
+      /* ---- Beat 6: cierre de marca ---- */
+      #cierre {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        padding: 0 var(--safe);
+        z-index: 30;
+      }
+      #cierre-fondo {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 50% 68%, rgba(110, 20, 35, 0.55) 0%, rgba(110, 20, 35, 0) 58%),
+          rgba(0, 0, 0, 0.93);
+      }
+      #cierre .lockup {
+        position: relative;
+        width: 648px;
+        height: auto;
+        display: block;
+      }
+      #cierre .cta {
+        position: relative;
+        margin-top: 62px;
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 400;
+        font-size: 68px;
+        line-height: 1.1;
+        color: var(--ma-dorado);
+        text-align: center;
+      }
+      #cierre .filete-cierre {
+        position: relative;
+        margin-top: 46px;
+        height: 2px;
+        width: 168px;
+        background: linear-gradient(
+          100deg,
+          rgba(184, 134, 46, 0) 0%,
+          var(--ma-dorado-luz) 50%,
+          rgba(184, 134, 46, 0) 100%
+        );
+        transform-origin: center;
+      }
+      #cierre .tel {
+        position: relative;
+        margin-top: 44px;
+        font-family: "Jost", sans-serif;
+        font-weight: 500;
+        font-size: 52px;
+        letter-spacing: 0.14em;
+        font-variant-numeric: tabular-nums;
+        color: var(--ma-dorado-luz);
+      }
+      #cierre .lugar {
+        position: relative;
+        margin-top: 22px;
+        font-family: "Jost", sans-serif;
+        font-weight: 300;
+        font-size: 32px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ma-crema);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="10"
+      data-width="1080"
+      data-height="1350"
+    >
+      <!-- ===== Capa compartida: fotografía continua + atmósfera ===== -->
+      <div id="stage" data-layout-allow-overflow>
+        <div class="shot" id="sh-burger"><img src="assets/img/burger.jpg" alt="" /></div>
+        <div class="shot" id="sh-tacos"><img src="assets/img/tacos.jpg" alt="" /></div>
+        <div class="shot" id="sh-ribs"><img src="assets/img/ribs.jpg" alt="" /></div>
+        <div class="shot" id="sh-surfturf"><img src="assets/img/surfturf.jpg" alt="" /></div>
+        <div class="shot" id="sh-mesa"><img src="assets/img/mesa.jpg" alt="" /></div>
+        <div class="shot" id="sh-alfredo"><img src="assets/img/alfredo.jpg" alt="" /></div>
+
+        <div id="bloom"></div>
+        <div id="vineta"></div>
+        <div id="scrim"></div>
+        <div id="scrim-top"></div>
+        <div id="grano"></div>
+      </div>
+
+      <!-- ===== Herrajes de marca: riel + marcas de registro (0.00 – 8.04) =====
+           Ceden el frame al cierre de marca. -->
+      <section id="herrajes" class="clip" data-start="0" data-duration="8.04" data-track-index="7">
+        <div id="riel">
+          <div class="filete"></div>
+          <div class="rotulo">San Pedro Sula</div>
+          <div class="filete-largo"></div>
+        </div>
+
+        <div class="marca-registro mr-tl"></div>
+        <div class="marca-registro mr-tr"></div>
+        <div class="marca-registro mr-bl"></div>
+        <div class="marca-registro mr-br"></div>
+      </section>
+
+      <!-- ===== Beat 1 · gancho (0.00 – 2.00) ===== -->
+      <section id="b1" class="clip beat" data-start="0" data-duration="1.94" data-track-index="1">
+        <div class="beat-inner">
+          <div class="eyebrow">Mon Ami · Bistro Bar</div>
+          <div class="filete-beat"></div>
+          <div class="linea titular" data-layout-allow-overflow><span>Se está sirviendo</span></div>
+          <div class="linea titular" data-layout-allow-overflow><span>ahora.</span></div>
+        </div>
+      </section>
+
+      <!-- ===== Beat 2 · tacos (2.00 – 3.50) ===== -->
+      <section id="b2" class="clip beat" data-start="2" data-duration="1.44" data-track-index="2">
+        <div class="beat-inner">
+          <div class="eyebrow">Para compartir</div>
+          <div class="filete-beat"></div>
+          <div class="linea plato" data-layout-allow-overflow><span>Tacos de arrachera</span></div>
+        </div>
+      </section>
+
+      <!-- ===== Beat 3 · costillas (3.50 – 5.00) ===== -->
+      <section id="b3" class="clip beat" data-start="3.5" data-duration="1.44" data-track-index="3">
+        <div class="beat-inner">
+          <div class="eyebrow">A fuego lento</div>
+          <div class="filete-beat"></div>
+          <div class="linea plato" data-layout-allow-overflow><span>Costillas BBQ</span></div>
+        </div>
+      </section>
+
+      <!-- ===== Beat 4 · mar y tierra (5.00 – 6.50) ===== -->
+      <section id="b4" class="clip beat" data-start="5" data-duration="1.44" data-track-index="4">
+        <div class="beat-inner">
+          <div class="eyebrow">El favorito de la casa</div>
+          <div class="filete-beat"></div>
+          <div class="linea plato" data-layout-allow-overflow><span>Mar y tierra</span></div>
+        </div>
+      </section>
+
+      <!-- ===== Beat 5 · el giro FOMO (6.50 – 8.10) ===== -->
+      <section id="b5" class="clip beat" data-start="6.5" data-duration="1.54" data-track-index="5">
+        <div class="beat-inner">
+          <div class="eyebrow">Esta noche</div>
+          <div class="filete-beat"></div>
+          <div class="linea titular" data-layout-allow-overflow><span>Y la mesa</span></div>
+          <div class="linea titular" data-layout-allow-overflow><span>se llena.</span></div>
+        </div>
+      </section>
+
+      <!-- ===== Beat 6 · cierre de marca (8.10 – 10.00) ===== -->
+      <section id="cierre" class="clip" data-start="8.1" data-duration="1.9" data-track-index="6">
+        <div id="cierre-fondo"></div>
+        <img class="lockup" src="assets/logo-mon-ami-gold.png" alt="Mon Ami Bistro Bar" />
+        <div class="cta">Reservá antes que se llene.</div>
+        <div class="filete-cierre"></div>
+        <div class="tel">9466 2727</div>
+        <div class="lugar">Plaza Paseo Próceres</div>
+      </section>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      /* ------------------------------------------------------------------
+         CAPA FOTOGRÁFICA — seis tomas, disolvencia de 0.24s en cada corte.
+         El Ken Burns arranca ANTES de la disolvencia para que la toma nueva
+         ya entre en movimiento, y alterna sentido (empuje / retroceso /
+         deriva lateral) para que dos cortes seguidos nunca se muevan igual.
+
+           beat  toma        in     out    movimiento
+           1     burger      0.00   2.00   empuje + subida
+           2     tacos       2.00   3.50   retroceso + deriva izq.
+           3     ribs        3.50   5.00   empuje + deriva der.
+           4     surfturf    5.00   6.50   retroceso + bajada
+           5     mesa        6.50   8.10   empuje lento
+           6     alfredo     8.10  10.00   empuje muy lento (fondo del cierre)
+         ------------------------------------------------------------------ */
+      tl.set("#sh-burger", { opacity: 1 }, 0);
+      tl.fromTo(
+        "#sh-burger img",
+        { scale: 1.0, x: 0, y: 0 },
+        { scale: 1.1, x: 0, y: -14, duration: 2.0, ease: "none" },
+        0,
+      );
+
+      tl.fromTo(
+        "#sh-tacos",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.24, ease: "power1.inOut" },
+        1.76,
+      );
+      tl.fromTo(
+        "#sh-tacos img",
+        { scale: 1.12, x: 18, y: 10 },
+        { scale: 1.02, x: -10, y: 0, duration: 1.74, ease: "none" },
+        1.76,
+      );
+
+      tl.fromTo(
+        "#sh-ribs",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.24, ease: "power1.inOut" },
+        3.26,
+      );
+      tl.fromTo(
+        "#sh-ribs img",
+        { scale: 1.01, x: -16, y: 0 },
+        { scale: 1.1, x: 8, y: -10, duration: 1.74, ease: "none" },
+        3.26,
+      );
+
+      tl.fromTo(
+        "#sh-surfturf",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.24, ease: "power1.inOut" },
+        4.76,
+      );
+      tl.fromTo(
+        "#sh-surfturf img",
+        { scale: 1.11, x: -8, y: -12 },
+        { scale: 1.01, x: 14, y: 6, duration: 1.74, ease: "none" },
+        4.76,
+      );
+
+      tl.fromTo(
+        "#sh-mesa",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.24, ease: "power1.inOut" },
+        6.26,
+      );
+      tl.fromTo(
+        "#sh-mesa img",
+        { scale: 1.02, x: 0, y: 12 },
+        { scale: 1.13, x: 0, y: -8, duration: 1.84, ease: "none" },
+        6.26,
+      );
+
+      tl.fromTo(
+        "#sh-alfredo",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.24, ease: "power1.inOut" },
+        7.86,
+      );
+      tl.fromTo(
+        "#sh-alfredo img",
+        { scale: 1.06, x: 0, y: 0 },
+        { scale: 1.16, x: 0, y: -10, duration: 2.14, ease: "none" },
+        7.86,
+      );
+
+      /* ---- Atmósfera: el bloom late en cada corte, la viñeta respira ---- */
+      tl.fromTo(
+        "#bloom",
+        { opacity: 0.78, scale: 1.06 },
+        { opacity: 0.44, scale: 1, duration: 0.9, ease: "power2.out" },
+        0,
+      );
+      tl.fromTo(
+        "#bloom",
+        { opacity: 0.78, scale: 1.06 },
+        { opacity: 0.44, scale: 1, duration: 0.9, ease: "power2.out" },
+        1.76,
+      );
+      tl.fromTo(
+        "#bloom",
+        { opacity: 0.78, scale: 1.06 },
+        { opacity: 0.44, scale: 1, duration: 0.9, ease: "power2.out" },
+        3.26,
+      );
+      tl.fromTo(
+        "#bloom",
+        { opacity: 0.78, scale: 1.06 },
+        { opacity: 0.44, scale: 1, duration: 0.9, ease: "power2.out" },
+        4.76,
+      );
+      tl.fromTo(
+        "#bloom",
+        { opacity: 0.78, scale: 1.06 },
+        { opacity: 0.44, scale: 1, duration: 0.9, ease: "power2.out" },
+        6.26,
+      );
+      tl.fromTo(
+        "#bloom",
+        { opacity: 0.78, scale: 1.06 },
+        { opacity: 0.44, scale: 1, duration: 0.9, ease: "power2.out" },
+        7.86,
+      );
+      tl.fromTo(
+        "#vineta",
+        { opacity: 0.82 },
+        { opacity: 1, duration: 5, ease: "sine.inOut", yoyo: true, repeat: 1 },
+        0,
+      );
+      // Deriva del grano: 4 tramos discretos, sin aleatoriedad en tiempo de render.
+      tl.to("#grano", { x: 26, y: -18, duration: 2.5, ease: "none" }, 0);
+      tl.to("#grano", { x: -14, y: 22, duration: 2.5, ease: "none" }, 2.5);
+      tl.to("#grano", { x: 20, y: 12, duration: 2.5, ease: "none" }, 5);
+      tl.to("#grano", { x: -22, y: -10, duration: 2.5, ease: "none" }, 7.5);
+
+      /* ---- Herrajes permanentes ---- */
+      tl.fromTo(
+        "#riel .filete",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power3.out" },
+        0.15,
+      );
+      tl.fromTo(
+        "#riel .rotulo",
+        { opacity: 0, x: -14 },
+        { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" },
+        0.3,
+      );
+      tl.fromTo(
+        "#riel .filete-largo",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.8, ease: "power3.out" },
+        0.4,
+      );
+      tl.fromTo(
+        ".marca-registro",
+        { opacity: 0, scale: 0.6 },
+        { opacity: 0.65, scale: 1, duration: 0.5, stagger: 0.06, ease: "back.out(2)" },
+        0.2,
+      );
+
+      /* ------------------------------------------------------------------
+         TIPOGRAFÍA POR BEAT — cada beat entra con una coreografía distinta.
+         Cinco entradas, cinco eases y cinco direcciones: máscara hacia
+         arriba, empuje lateral, máscara hacia abajo con giro, asentado de
+         escala, y máscara escalonada de dos líneas para el remate FOMO.
+         ------------------------------------------------------------------ */
+
+      /* Beat 1 · gancho — máscara hacia arriba (expo.out) */
+      tl.fromTo(
+        "#b1 .eyebrow",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+        0.22,
+      );
+      tl.fromTo(
+        "#b1 .filete-beat",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.55, ease: "power3.out" },
+        0.3,
+      );
+      tl.fromTo(
+        "#b1 .linea > span",
+        { yPercent: 116 },
+        { yPercent: 0, duration: 0.72, stagger: 0.1, ease: "expo.out" },
+        0.32,
+      );
+
+      /* Beat 2 · tacos — empuje lateral desde la derecha (power4.out) */
+      tl.fromTo(
+        "#b2 .eyebrow",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        2.06,
+      );
+      tl.fromTo(
+        "#b2 .filete-beat",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power3.out" },
+        2.14,
+      );
+      tl.fromTo(
+        "#b2 .linea > span",
+        { opacity: 0, x: 52 },
+        { opacity: 1, x: 0, duration: 0.58, ease: "power4.out" },
+        2.18,
+      );
+
+      /* Beat 3 · costillas — máscara hacia abajo con giro leve (expo.out) */
+      tl.fromTo(
+        "#b3 .eyebrow",
+        { opacity: 0, x: -20 },
+        { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" },
+        3.56,
+      );
+      tl.fromTo(
+        "#b3 .filete-beat",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power3.out" },
+        3.64,
+      );
+      tl.fromTo(
+        "#b3 .linea > span",
+        { yPercent: -118, rotation: -2 },
+        { yPercent: 0, rotation: 0, duration: 0.66, ease: "expo.out" },
+        3.68,
+      );
+
+      /* Beat 4 · mar y tierra — asentado de escala (power3.out) */
+      tl.fromTo(
+        "#b4 .eyebrow",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        5.06,
+      );
+      tl.fromTo(
+        "#b4 .filete-beat",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power3.out" },
+        5.14,
+      );
+      /* La escala va en la ventana (.linea), no en el <span>: si escalara el
+         hijo, su propia máscara lo recortaría en el pico de la entrada. */
+      tl.fromTo(
+        "#b4 .linea",
+        { opacity: 0, scale: 1.16, y: 14 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        5.18,
+      );
+
+      /* Beat 5 · el giro FOMO — máscara escalonada de dos líneas (expo.out) */
+      tl.fromTo(
+        "#b5 .eyebrow",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.42, ease: "power2.out" },
+        6.56,
+      );
+      tl.fromTo(
+        "#b5 .filete-beat",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.52, ease: "power3.out" },
+        6.64,
+      );
+      tl.fromTo(
+        "#b5 .linea > span",
+        { yPercent: 120 },
+        { yPercent: 0, duration: 0.7, stagger: 0.12, ease: "expo.out" },
+        6.68,
+      );
+
+      /* Salidas: el texto se apaga dentro de la disolvencia fotográfica,
+         nunca en corte seco, para que los dos planos cambien coherentes. */
+      tl.to("#b1 .beat-inner", { opacity: 0, duration: 0.18, ease: "power2.in" }, 1.76);
+      tl.to("#b2 .beat-inner", { opacity: 0, duration: 0.18, ease: "power2.in" }, 3.26);
+      tl.to("#b3 .beat-inner", { opacity: 0, duration: 0.18, ease: "power2.in" }, 4.76);
+      tl.to("#b4 .beat-inner", { opacity: 0, duration: 0.18, ease: "power2.in" }, 6.26);
+      tl.to("#b5 .beat-inner", { opacity: 0, duration: 0.2, ease: "power2.in" }, 7.84);
+      tl.to("#herrajes", { opacity: 0, duration: 0.24, ease: "power2.in" }, 7.8);
+
+      /* ---- Cierre de marca: el logo asienta, el CTA remata ---- */
+      tl.fromTo(
+        "#cierre-fondo",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power2.out" },
+        8.1,
+      );
+      tl.fromTo(
+        "#cierre .lockup",
+        { opacity: 0, scale: 1.18 },
+        { opacity: 1, scale: 1, duration: 0.75, ease: "power3.out" },
+        8.18,
+      );
+      tl.fromTo(
+        "#cierre .cta",
+        { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" },
+        8.62,
+      );
+      tl.fromTo(
+        "#cierre .filete-cierre",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power3.out" },
+        8.86,
+      );
+      tl.fromTo(
+        "#cierre .tel",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        8.98,
+      );
+      tl.fromTo(
+        "#cierre .lugar",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        9.1,
+      );
+      // Respiro final del lockup: mantiene vivo el último segundo.
+      tl.to("#cierre .lockup", { scale: 1.03, duration: 1.0, ease: "sine.inOut" }, 9.0);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
