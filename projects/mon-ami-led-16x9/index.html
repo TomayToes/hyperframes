@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es-HN" data-composition-width="1080" data-composition-height="1350">
+<html lang="es-HN" data-composition-width="1920" data-composition-height="1080">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1080, height=1350" />
-    <title>Mon Ami — LED 4:5 (razones para venir)</title>
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Mon Ami — LED 16:9 (razones para venir)</title>
     <!-- GSAP vendorizado (3.14.2): el render no hace ninguna petición de red. -->
     <script src="assets/vendor/gsap.min.js"></script>
     <style>
@@ -32,8 +32,8 @@
       html,
       body {
         margin: 0;
-        width: 1080px;
-        height: 1350px;
+        width: 1920px;
+        height: 1080px;
         overflow: hidden;
         background: #000;
       }
@@ -47,13 +47,13 @@
         --ma-crema: #f4efe4;
         --ma-taupe: #a49d8f;
         --ma-borgona: #6e1423;
-        --safe: 84px;
+        --safe: 96px;
       }
 
       #root {
         position: relative;
-        width: 1080px;
-        height: 1350px;
+        width: 1920px;
+        height: 1080px;
         overflow: hidden;
         background: var(--ma-negro);
       }
@@ -71,11 +71,26 @@
         overflow: hidden;
       }
 
+      /* Las fotos son 4:5 nativas (1620x2025). Estiradas a 16:9 con cover
+         solo se ve el 45% de su altura: el emplatado que el restaurante
+         aprobo se convierte en un macro sin contexto. Asi que los platos
+         viven en un panel de 1020 px que invade hacia el centro del frame:
+         la foto entra completa a lo ancho y la comida deja de morir contra
+         el borde derecho. El campo negro de la izquierda es del copy. */
       .shot {
         position: absolute;
-        inset: 0;
+        top: 0;
+        bottom: 0;
+        left: 900px;
+        right: 0;
         opacity: 0;
+        overflow: hidden;
         will-change: opacity;
+      }
+      /* La mesa puesta es ambiente, no emplatado: recortarla no destruye
+         nada, y a pantalla completa el cierre gana peso. */
+      #sh-mesa {
+        left: 0;
       }
       /* Ventana de revelado: se abre en banda horizontal (scaleY). */
       .banda {
@@ -95,20 +110,48 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        width: 1080px;
-        height: 1350px;
+        width: 1020px;
+        height: 1080px;
         object-fit: cover;
         transform: translate(-50%, -50%);
-        transform-origin: 50% 42%;
+        transform-origin: 50% 46%;
         will-change: transform;
+      }
+      /* La comida de las dos primeras tomas vive en la mitad alta de la
+         foto: el crop se ancla arriba para que el plato quede en cuadro
+         y no una mesa vacia. */
+      #sh-surfturf img,
+      #sh-ribs img {
+        object-position: 50% 0%;
+      }
+      #sh-mesa img {
+        width: 1920px;
+        transform-origin: 50% 40%;
+      }
+
+      /* Borde izquierdo del panel: sin esto el corte contra el negro es una
+         linea recta y el montaje lee como plantilla, no como composicion. */
+      #panel-fade {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 820px;
+        width: 260px;
+        background: linear-gradient(
+          to right,
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, 0.86) 34%,
+          rgba(0, 0, 0, 0.4) 68%,
+          rgba(0, 0, 0, 0) 100%
+        );
       }
 
       /* Barrido de luz cálida: cruza el frame en el arranque de cada toma. */
       #barrido {
         position: absolute;
         top: -24%;
-        left: 0;
-        width: 62%;
+        left: 900px;
+        width: 320px;
         height: 148%;
         /* Horizontal puro: sobre una caja mas alta que ancha, un angulo
            cercano a la vertical deja los bordes laterales sin difuminar. */
@@ -127,8 +170,8 @@
       /* Bloom ámbar: simula el spot cálido del local. */
       #bloom {
         position: absolute;
-        left: 50%;
-        top: 34%;
+        left: 76%;
+        top: 42%;
         width: 1500px;
         height: 1500px;
         transform: translate(-50%, -50%);
@@ -147,9 +190,9 @@
         position: absolute;
         inset: 0;
         background: radial-gradient(
-          ellipse at 50% 38%,
-          rgba(0, 0, 0, 0) 30%,
-          rgba(0, 0, 0, 0.52) 100%
+          ellipse at 62% 44%,
+          rgba(0, 0, 0, 0) 24%,
+          rgba(0, 0, 0, 0.56) 100%
         );
       }
 
@@ -159,11 +202,11 @@
         inset: 0;
         background: linear-gradient(
           to top,
-          rgba(0, 0, 0, 0.95) 0%,
-          rgba(0, 0, 0, 0.9) 22%,
-          rgba(0, 0, 0, 0.66) 38%,
-          rgba(0, 0, 0, 0.22) 54%,
-          rgba(0, 0, 0, 0) 72%
+          rgba(0, 0, 0, 0.9) 0%,
+          rgba(0, 0, 0, 0.78) 18%,
+          rgba(0, 0, 0, 0.48) 32%,
+          rgba(0, 0, 0, 0.16) 46%,
+          rgba(0, 0, 0, 0) 62%
         );
       }
       /* Scrim superior: cubre el bloque de marca, que ahora llega a y~230.
@@ -175,10 +218,10 @@
         background: linear-gradient(
           to bottom,
           rgba(0, 0, 0, 0.9) 0%,
-          rgba(0, 0, 0, 0.8) 9%,
-          rgba(0, 0, 0, 0.58) 15%,
-          rgba(0, 0, 0, 0.26) 19%,
-          rgba(0, 0, 0, 0) 25%
+          rgba(0, 0, 0, 0.8) 11%,
+          rgba(0, 0, 0, 0.58) 19%,
+          rgba(0, 0, 0, 0.26) 24%,
+          rgba(0, 0, 0, 0) 31%
         );
       }
 
@@ -208,7 +251,7 @@
          ninguna de las tres tomas ocupa. */
       #marca {
         position: absolute;
-        top: 78px;
+        top: 64px;
         left: var(--safe);
         display: flex;
         flex-direction: column;
@@ -217,14 +260,22 @@
       }
       #marca .logo {
         display: block;
-        width: 430px;
+        width: 460px;
         height: auto;
       }
       #marca .filete {
         height: 2px;
-        width: 172px;
+        width: 184px;
         background: linear-gradient(90deg, var(--ma-dorado) 0%, rgba(184, 134, 46, 0) 100%);
         transform-origin: left center;
+      }
+      #marca .enlace {
+        font-family: "Jost", sans-serif;
+        font-weight: 500;
+        font-size: 42px;
+        letter-spacing: 0.13em;
+        color: var(--ma-crema);
+        white-space: nowrap;
       }
 
       .marca-registro {
@@ -236,13 +287,13 @@
         opacity: 0.65;
       }
       .mr-bl {
-        bottom: 44px;
-        left: 44px;
+        bottom: 48px;
+        left: 48px;
         border-width: 0 0 2px 2px;
       }
       .mr-br {
-        bottom: 44px;
-        right: 44px;
+        bottom: 48px;
+        right: 48px;
         border-width: 0 2px 2px 0;
       }
 
@@ -252,8 +303,9 @@
       .beat {
         position: absolute;
         left: var(--safe);
-        right: var(--safe);
-        bottom: 168px;
+        right: auto;
+        max-width: 984px;
+        bottom: 128px;
         z-index: 20;
       }
       /* La opacidad se anima en este hijo, nunca en el .clip:
@@ -262,13 +314,13 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 26px;
+        gap: 22px;
       }
 
       .eyebrow {
         font-family: "Jost", sans-serif;
         font-weight: 400;
-        font-size: 34px;
+        font-size: 36px;
         letter-spacing: 0.3em;
         text-transform: uppercase;
         color: var(--ma-taupe);
@@ -301,7 +353,7 @@
 
       .titular > span {
         font-weight: 300;
-        font-size: 98px;
+        font-size: 104px;
         color: var(--ma-crema);
       }
 
@@ -313,7 +365,9 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 0 var(--safe);
+        /* Aire para el logo, que en el cierre viaja de la esquina al centro
+           y aterriza encima de la invitacion. */
+        padding: 130px var(--safe) 0;
         z-index: 30;
       }
       /* Más claro que un cierre a negro: se quiere que la mesa puesta
@@ -323,7 +377,7 @@
         inset: 0;
         background:
           radial-gradient(
-            ellipse at 50% 76%,
+            ellipse at 50% 72%,
             rgba(110, 20, 35, 0.34) 0%,
             rgba(110, 20, 35, 0.14) 52%,
             rgba(110, 20, 35, 0) 96%
@@ -332,17 +386,17 @@
       }
       #cierre .invitacion {
         position: relative;
-        margin-top: 58px;
+        margin-top: 0;
         font-family: "Cormorant Garamond", serif;
         font-weight: 400;
-        font-size: 76px;
+        font-size: 92px;
         line-height: 1.08;
         color: var(--ma-dorado);
         text-align: center;
       }
       #cierre .filete-cierre {
         position: relative;
-        margin-top: 44px;
+        margin-top: 40px;
         height: 2px;
         width: 200px;
         background: linear-gradient(
@@ -357,7 +411,7 @@
          hasta el local, así que pesa más que el teléfono. */
       #cierre .lugar {
         position: relative;
-        margin-top: 42px;
+        margin-top: 38px;
         font-family: "Jost", sans-serif;
         font-weight: 400;
         font-size: 46px;
@@ -376,14 +430,14 @@
         text-transform: uppercase;
         color: var(--ma-taupe);
       }
-      /* El remate del CTA: el dominio solo vive aqui, asi que es el elemento
-         que mas tiene que retenerse — va en grande. */
+      /* El remate del CTA: en el cierre el enlace de la esquina se apaga,
+         asi que este es el unico lugar donde el dominio se queda — pesa. */
       #cierre .web {
         position: relative;
-        margin-top: 42px;
+        margin-top: 36px;
         font-family: "Jost", sans-serif;
         font-weight: 600;
-        font-size: 68px;
+        font-size: 58px;
         letter-spacing: 0.1em;
         color: var(--ma-dorado-luz);
       }
@@ -395,8 +449,8 @@
       data-composition-id="main"
       data-start="0"
       data-duration="8"
-      data-width="1080"
-      data-height="1350"
+      data-width="1920"
+      data-height="1080"
     >
       <!-- ===== Capa compartida: tres tomas + atmósfera ===== -->
       <div id="stage" data-layout-allow-overflow>
@@ -416,6 +470,7 @@
           </div>
         </div>
 
+        <div id="panel-fade"></div>
         <div id="barrido"></div>
         <div id="bloom"></div>
         <div id="vineta"></div>
@@ -429,6 +484,7 @@
         <div id="marca" data-layout-allow-overlap>
           <img class="logo" src="assets/logo-mon-ami-gold.png" alt="Mon Ami Bistro Bar" />
           <div class="filete"></div>
+          <div class="enlace">monamihn.com</div>
         </div>
 
         <div class="marca-registro mr-bl"></div>
@@ -496,10 +552,13 @@
          foto nunca se deforma.
          ------------------------------------------------------------------ */
       tl.set("#sh-surfturf", { opacity: 1 }, 0);
+      /* Margen de paneo dentro del panel: a scale S sobran 450(S-1) px en x
+         y (1125S-1080)/2 en y. Por eso los recorridos son de decenas de px y
+         no de cientos como en vertical: pasarse deja ver el borde del panel. */
       tl.fromTo(
         "#sh-surfturf img",
-        { scale: 1.0, x: 0, y: 0 },
-        { scale: 1.2, x: 0, y: -26, duration: 2.9, ease: "none" },
+        { scale: 1.05, x: 0, y: 0 },
+        { scale: 1.17, x: 0, y: -26, duration: 2.9, ease: "none" },
         0,
       );
 
@@ -519,10 +578,14 @@
       // La toma saliente disuelve mientras la banda abre: sin esto se ven
       // las dos fotos a la vez y el corte lee como error, no como diseño.
       tl.to("#sh-surfturf", { opacity: 0, duration: 0.4, ease: "power2.inOut" }, 2.65);
+      /* Ribs: la foto ancla arriba (object-position 0%) y aun asi el plato
+         queda alto, porque en la foto no hay nada encima de el. El zoom
+         fuerte + y positivo lo bajan al centro del panel sin revelar el
+         borde superior de la foto (limite: y <= 497(S-1) con origin 46%). */
       tl.fromTo(
         "#sh-ribs img",
-        { scale: 1.18, x: -34, y: -10 },
-        { scale: 1.02, x: 30, y: 8, duration: 3.0, ease: "none" },
+        { scale: 1.34, x: -22, y: 128 },
+        { scale: 1.26, x: 18, y: 126, duration: 3.0, ease: "none" },
         2.65,
       );
 
@@ -540,6 +603,8 @@
         5.5,
       );
       tl.to("#sh-ribs", { opacity: 0, duration: 0.4, ease: "power2.inOut" }, 5.5);
+      // El borde del panel deja de tener sentido en cuanto la toma es full-bleed.
+      tl.to("#panel-fade", { opacity: 0, duration: 0.44, ease: "power2.inOut" }, 5.5);
       tl.fromTo(
         "#sh-mesa img",
         { scale: 1.02, x: 0, y: 16 },
@@ -554,8 +619,8 @@
          y pueden variar entre renders. */
       tl.fromTo(
         "#barrido",
-        { x: -820, skewX: -9 },
-        { x: 1240, skewX: -9, duration: 1.0, ease: "power2.inOut" },
+        { x: -420, skewX: -9 },
+        { x: 1060, skewX: -9, duration: 1.0, ease: "power2.inOut" },
         0.1,
       );
       tl.fromTo(
@@ -568,8 +633,8 @@
 
       tl.fromTo(
         "#barrido",
-        { x: -820, skewX: -9 },
-        { x: 1240, skewX: -9, duration: 1.0, ease: "power2.inOut" },
+        { x: -420, skewX: -9 },
+        { x: 1060, skewX: -9, duration: 1.0, ease: "power2.inOut" },
         2.75,
       );
       tl.fromTo(
@@ -582,8 +647,8 @@
 
       tl.fromTo(
         "#barrido",
-        { x: -820, skewX: -9 },
-        { x: 1240, skewX: -9, duration: 1.0, ease: "power2.inOut" },
+        { x: -420, skewX: -9 },
+        { x: 1060, skewX: -9, duration: 1.0, ease: "power2.inOut" },
         5.6,
       );
       tl.fromTo(
@@ -640,6 +705,12 @@
         { scaleX: 0 },
         { scaleX: 1, duration: 0.55, ease: "power3.out" },
         0.4,
+      );
+      tl.fromTo(
+        "#marca .enlace",
+        { opacity: 0, x: -16 },
+        { opacity: 1, x: 0, duration: 0.55, ease: "power2.out" },
+        0.5,
       );
       tl.fromTo(
         ".marca-registro",
@@ -709,10 +780,19 @@
 
       /* ------------------------------------------------------------------
          CIERRE — la invitación a caminar hasta el local.
-         Sin el lockup grande: la marca ya está arriba a la izquierda desde
-         el segundo 0, y quitarla de aquí compra el tiempo de lectura que
-         los 8 s no regalaban. Todo asentado a los 6.93 s.
+         El logo deja la esquina y aterriza en el centro, mas grande, como
+         cabecera del lockup final; el filete y el enlace de la esquina se
+         apagan y el dominio queda solo en el CTA central.
          ------------------------------------------------------------------ */
+      /* Centro del logo en reposo: (96+230, 64+42) = (326, 106).
+         Destino: (960, 250) → dx 634, dy 144; escala 1.5 (690x126). */
+      tl.to(
+        "#marca .logo",
+        { x: 634, y: 144, scale: 1.5, duration: 0.95, ease: "power3.inOut" },
+        5.75,
+      );
+      tl.to("#marca .filete", { opacity: 0, duration: 0.3, ease: "power2.in" }, 5.75);
+      tl.to("#marca .enlace", { opacity: 0, duration: 0.3, ease: "power2.in" }, 5.75);
       tl.fromTo(
         "#cierre-fondo",
         { opacity: 0 },
